@@ -11,6 +11,6 @@ class Graph():
         self.matrix[(x,y)] = []
         
         
-    def addEdge(self, parentX, parentY, destinationX, destinationY):
-        self.matrix[(parentX, parentY)].append((destinationX, destinationY))
+    def addEdge(self, parentX, parentY, destinationX, destinationY, weight = 1):
+        self.matrix[(parentX, parentY)].append((destinationX, destinationY, weight))
         

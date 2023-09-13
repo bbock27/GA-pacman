@@ -17,6 +17,9 @@ class Player(pygame.sprite.Sprite):
     def __init__(self,x,y,filename):
         self.x = x
         self.y = y
+        self.newTile = True
+        self.prevX = -1
+        self.prevY = -1
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load(filename).convert()
         self.image.set_colorkey(BLACK)
@@ -24,9 +27,46 @@ class Player(pygame.sprite.Sprite):
         self.rect.topleft = (x*32,y*32)
         self.playerImage = pygame.image.load(filename).convert()
         self.playerImage.set_colorkey(BLACK)
-        self.lives = 5
+        self.blocksList = []
+        self.currentDirection = "right"
+        # self.moveLeft()
+        #values = (up, down, left, right)
+        self.allowedDirections = {0:(False,False,False,False),
+                           1:(False,False,True,True), 
+                           2:(True,True,False,False), 
+                           3:(True,True,True,True), 
+                           4:(False,True,False,True),
+                           5:(False,True,True,False),
+                           6:(True,False,False,True),
+                           7:(True,False,True,False),
+                           8:(True,True,False,True),
+                           9:(True,True,True,False),
+                           10:(False,True,True,True),
+                           11:(True,False,True,True)}
+        
+        
+    def checkCollision(self, index, blockSet):
+        wallDirections = self.allowedDirections.get((index))
+        wallDirections = [not element for element in wallDirections]
+        for block in pygame.sprite.spritecollide(self, blockSet, False):
+            if  (wallDirections[0]):
+                if self.rect.centery < block.rect.centery:
+                        self.rect.centery = block.rect.centery
+            if  (wallDirections[1]):
+                if self.rect.centery > block.rect.centery:
+                        self.rect.centery = block.rect.centery
+            if  (wallDirections[2]):
+                if self.rect.centerx < block.rect.centerx:
+                    self.rect.centerx = block.rect.centerx
+            if  (wallDirections[3]):
+                if self.rect.centerx > block.rect.centerx:
+                        self.rect.centerx = block.rect.centerx
+            
+            
+        
+    
 
-    def update(self,horizontalBlocks,verticalBlocks,topLeftBlocks,topRightBlocks, bottomLeftBlocks, bottomRightBlocks, leftBlocks, rightBlocks, topBlocks, bottomBlocks):
+    def update(self, blocksList):
         if not self.explosion:
             if self.rect.right < 0:
                 self.rect.left = SCREEN_WIDTH
@@ -38,116 +78,51 @@ class Player(pygame.sprite.Sprite):
                 self.rect.bottom = 0
             self.rect.x += self.changeX
             self.rect.y += self.changeY
-
-            # These loops will stop pacman from colliding with walls and going through them
-            # checks for deviation from center of "hallway" and moves them to the center
-            
-            
-            for block in pygame.sprite.spritecollide(self,horizontalBlocks,False):
-                # puts pacmam back into the center of the "hallway" and stops vertical movement
-                self.rect.centery = block.rect.centery
-                
-                
-                
-            for block in pygame.sprite.spritecollide(self,verticalBlocks,False):
-                # puts pacmam back into the center of the "hallway" and stops horizontal movement
-                self.rect.centerx = block.rect.centerx
-                
-                
-                
-            for block in pygame.sprite.spritecollide(self,topLeftBlocks,False):
-                #if pacman is left of the center(colliding with the left wall), move him to the x-center
-                if self.rect.centerx < block.rect.centerx:
-                    self.rect.centerx = block.rect.centerx
-                #if pacman is above the center(colliding with top wall), move him to the y-center
-                if self.rect.centery < block.rect.centery:
-                    self.rect.centery = block.rect.centery
-                
-                
-                
-            for block in pygame.sprite.spritecollide(self,topRightBlocks,False):
-                #if pacman is right of the center(colliding with the right wall), move him to the center
-                if self.rect.centerx > block.rect.centerx:
-                    self.rect.centerx = block.rect.centerx
-                #if pacman is above the center(colliding with top wall), move him to the y-center
-                if self.rect.centery < block.rect.centery:
-                    self.rect.centery = block.rect.centery
-                    
-                    
-                    
-            for block in pygame.sprite.spritecollide(self,bottomLeftBlocks,False):
-                #if pacman is left of the center(colliding with the left wall), move him to the center
-                if self.rect.centerx < block.rect.centerx:
-                    self.rect.centerx = block.rect.centerx
-                #if pacman is below the center(colliding with bottom wall), move him to the y-center
-                if self.rect.centery > block.rect.centery:
-                    self.rect.centery = block.rect.centery
-                    
-                    
-                    
-            for block in pygame.sprite.spritecollide(self,bottomRightBlocks,False):
-                #if pacman is right of the center(colliding with the right wall), move him to the center
-                if self.rect.centerx > block.rect.centerx:
-                    self.rect.centerx = block.rect.centerx
-                #if pacman is below the center(colliding with bottom wall), move him to the y-center
-                if self.rect.centery > block.rect.centery:
-                    self.rect.centery = block.rect.centery
-                    
-                    
-                    
-            for block in pygame.sprite.spritecollide(self,leftBlocks,False):
-                #if pacman is left of the center(colliding with the left wall), move him to the center
-                if self.rect.centerx < block.rect.centerx:
-                    self.rect.centerx = block.rect.centerx
-                    
-                    
-                    
-            for block in pygame.sprite.spritecollide(self,rightBlocks,False):
-                #if pacman is right of the center(colliding with the right wall), move him to the center
-                if self.rect.centerx > block.rect.centerx:
-                    self.rect.centerx = block.rect.centerx
-                    
-                    
-                    
-                    
-            for block in pygame.sprite.spritecollide(self,topBlocks,False):
-                #if pacman is above the center(colliding with top wall), move him to the y-center
-                if self.rect.centery < block.rect.centery:
-                    self.rect.centery = block.rect.centery
-                    
-                    
-                    
-            for block in pygame.sprite.spritecollide(self,bottomBlocks,False):
-                #if pacman is below the center(colliding with bottom wall), move him to the y-center
-                if self.rect.centery > block.rect.centery:
-                    self.rect.centery = block.rect.centery
+            self.blocksList = blocksList
+            for i, currentBlockType in enumerate(self.blocksList):
+                if(currentBlockType is not None):
+                    self.checkCollision(i, currentBlockType)
+            if self.rect.x % 32 == 0 and self.rect.y % 32 == 0 and not (self.prevX == self.rect.x and self.prevY == self.rect.y):
+                self.newTile = True
+            else:
+                self.newTile = False
+            self.prevX = self.rect.x
+            self.prevY = self.rect.y
         else:
             self.game_Over = True
             
             
             
             
-        def checkGameOver(self):
-            if Player.game_Over == True:
-                return True
+    def checkGameOver(self):
+        if Player.game_Over == True:
+            return True
             
 
     def moveRight(self):
         self.changeX = Player.moveSpeed
+        self.changeY = 0
+        self.currentDirection = "right"
         # changes orientation of pacman
         self.image = self.playerImage
     def moveLeft(self):
         self.changeX = -Player.moveSpeed
+        self.changeY = 0
+        self.currentDirection = "left"
         # changes orientation of pacman
         self.image = pygame.transform.flip(self.playerImage,True,False)
 
     def moveUp(self):
         self.changeY = -Player.moveSpeed
+        self.changeX = 0
+        self.currentDirection = "up"
         # changes orientation of pacman
         self.image = pygame.transform.rotate(self.playerImage,90)
 
     def moveDown(self):
         self.changeY = Player.moveSpeed
+        self.changeX = 0
+        self.currentDirection = "down"
         # changes orientation of pacman
         self.image = pygame.transform.rotate(self.playerImage,270)
 

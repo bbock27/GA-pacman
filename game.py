@@ -2,8 +2,8 @@ import pygame
 from player import Player
 from block import Block
 from food import Food
-from ghosts import Ghost
-from BFS_pacman import *
+from ghost import Ghost
+from breadthFirstPlayer import *
 
 
 SCREEN_WIDTH = 608
@@ -41,6 +41,8 @@ class Game(object):
         self.topBlocks = pygame.sprite.Group()
         self.bottomBlocks = pygame.sprite.Group()
         
+        self.blocksList = [None, self.horizontalBlocks,self.verticalBlocks, None,self.topLeftBlocks,self.topRightBlocks, self.bottomLeftBlocks, self.bottomRightBlocks, self.leftBlocks, self.rightBlocks, self.topBlocks, self.bottomBlocks]
+        
         
         # Create a group for the dots on the screen
         self.dotsGroup = pygame.sprite.Group()
@@ -72,12 +74,12 @@ class Game(object):
                     self.bottomBlocks.add(Block(j*32+8,i*32+8,BLACK,16,16))
                 
         # Create the enemies
-        self.enemies = pygame.sprite.Group()
+        self.ghosts = pygame.sprite.Group()
         
-        self.enemies.add(Ghost(256,288,0,-2))
-        self.enemies.add(Ghost(288,288,0,-2))
-        self.enemies.add(Ghost(320,288,0,2))
-        self.enemies.add(Ghost(352,288,0,-2))
+        self.ghosts.add(Ghost(256,288,0,-2))
+        self.ghosts.add(Ghost(288,288,0,-2))
+        self.ghosts.add(Ghost(320,288,0,2))
+        self.ghosts.add(Ghost(352,288,0,-2))
         self.addFood()
         
         
@@ -86,11 +88,8 @@ class Game(object):
         # Add the dots inside the game
         for i, row in enumerate(enviroment()):
             for j, item in enumerate(row):
-                if item != 0:
-                    if i == 1 and j == 1:
-                        self.dotsGroup.add(Food(j*32+12,i*32+12,RED,8,8))
-                    else:
-                        self.dotsGroup.add(Food(j*32+12,i*32+12,WHITE,8,8))
+                if item != 0:    
+                    self.dotsGroup.add(Food(j*32+12,i*32+12,WHITE,8,8))
                     
                     
 
@@ -101,16 +100,12 @@ class Game(object):
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RIGHT:
                     self.player.moveRight()
-
                 elif event.key == pygame.K_LEFT:
                     self.player.moveLeft()
-
                 elif event.key == pygame.K_UP:
                     self.player.moveUp()
-
                 elif event.key == pygame.K_DOWN:
                     self.player.moveDown()
-                    
                 elif event.key == pygame.K_ESCAPE:
                     self.gameOver = True
 
@@ -128,18 +123,26 @@ class Game(object):
 
     def runLogic(self):
         if not self.gameOver:
-            self.player.update(self.horizontalBlocks,self.verticalBlocks,self.topLeftBlocks,self.topRightBlocks, self.bottomLeftBlocks, self.bottomRightBlocks, self.leftBlocks, self.rightBlocks, self.topBlocks, self.bottomBlocks)
-            blockHitList = pygame.sprite.spritecollide(self.player,self.dotsGroup,True)
-            # When the blockHitList contains one sprite that means that player hit a dot
-            if len(blockHitList) > 0:
+            self.player.update(self.blocksList)
+            pelletHitList = pygame.sprite.spritecollide(self.player,self.dotsGroup,True)
+            # When the pelletHitList contains one sprite that means that player hit a dot
+            if len(pelletHitList) > 0:
                 # Here will be the sound effect
                 self.pacman_sound.play()
                 self.score += 1
-            blockHitList = pygame.sprite.spritecollide(self.player,self.enemies,True)
-            if len(blockHitList) > 0:
+            
+            
+            ghostCollisionList = pygame.sprite.spritecollide(self.player,self.ghosts,True)
+            if len(ghostCollisionList) > 0:
                 self.player.explosion = True
+                
+                
             self.gameOver = self.player.game_Over
-            self.enemies.update()
+            
+            
+            self.ghosts.update()
+            
+            
             if not self.dotsGroup:
                 self.gameOver = True
             
@@ -152,7 +155,7 @@ class Game(object):
         self.verticalBlocks.draw(screen)
         drawEnviroment(screen)
         self.dotsGroup.draw(screen)
-        self.enemies.draw(screen)
+        self.ghosts.draw(screen)
         screen.blit(self.player.image,self.player.rect)
         # Render the text for the score
         text = self.font.render("Score: " + str(self.score),True,GREEN)
@@ -164,26 +167,28 @@ class Game(object):
                     
 def enviroment():
     
-    grid = ((0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), 
-             (0, 4, 1, 1,10, 1, 1, 1, 5, 0, 4, 1, 1, 1,10, 1, 1, 5, 0), 
-             (0, 2, 0, 0, 2, 0, 0, 0, 2, 0, 2, 0, 0, 0, 2, 0, 0, 2, 0), 
-             (0, 8, 1, 1, 3, 1,10, 1,11, 1,11, 1,10, 1, 3, 1, 1, 9, 0),
-             (0, 2, 0, 0, 2, 0, 2, 0, 0, 0, 0, 0, 2, 0, 2, 0, 0, 2, 0),
-             (0, 6, 1, 1, 9, 0, 6, 1, 5, 0, 4, 1, 7, 0, 8, 1, 1, 7, 0), 
-             (0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0), 
-             (0, 0, 0, 0, 2, 0, 4, 1,11,10,11, 1, 5, 0, 2, 0, 0, 0, 0), 
-             (0, 0, 0, 0, 2, 0, 2, 4,10, 3,10, 5, 2, 0, 2, 0, 0, 0, 0), 
-             (1, 1, 1, 1, 3, 1, 9, 8, 3, 3, 3, 9, 8, 1, 3, 1, 1, 1, 1), 
-             (0, 0, 0, 0, 2, 0, 2, 6,11,11,11, 7, 2, 0, 2, 0, 0, 0, 0), 
-             (0, 0, 0, 0, 2, 0, 6, 1,10, 1,10, 1, 7, 0, 2, 0, 0, 0, 0), 
-             (0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0), 
-             (0, 4, 1, 1, 9, 0, 4, 1, 7, 0, 6, 1, 5, 0, 8, 1, 1, 5, 0), 
-             (0, 2, 0, 0, 2, 0, 2, 0, 0, 0, 0, 0, 2, 0, 2, 0, 0, 2, 0), 
-             (0, 8, 1, 1, 3, 1,11, 1,10, 1,10, 1,11, 1, 3, 1, 1, 9, 0), 
-             (0, 2, 0, 0, 2, 0, 0, 0, 2, 0, 2, 0, 0, 0, 2, 0, 0, 2, 0), 
-             (0, 6, 1, 1,11, 1, 1, 1, 7, 0, 6, 1, 1, 1,11, 1, 1, 7, 0),
-             (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), 
-             )
+    grid = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+             [0, 4, 1, 1,10, 1, 1, 1, 5, 0, 4, 1, 1, 1,10, 1, 1, 5, 0], 
+             [0, 2, 0, 0, 2, 0, 0, 0, 2, 0, 2, 0, 0, 0, 2, 0, 0, 2, 0], 
+             [0, 8, 1, 1, 3, 1,10, 1,11, 1,11, 1,10, 1, 3, 1, 1, 9, 0],
+             [0, 2, 0, 0, 2, 0, 2, 0, 0, 0, 0, 0, 2, 0, 2, 0, 0, 2, 0],
+             [0, 6, 1, 1, 9, 0, 6, 1, 5, 0, 4, 1, 7, 0, 8, 1, 1, 7, 0], 
+             [0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0], 
+             [0, 0, 0, 0, 2, 0, 4, 1,11,10,11, 1, 5, 0, 2, 0, 0, 0, 0], 
+             [0, 0, 0, 0, 2, 0, 2, 4,10, 3,10, 5, 2, 0, 2, 0, 0, 0, 0], 
+             [1, 1, 1, 1, 3, 1, 9, 8, 3, 3, 3, 9, 8, 1, 3, 1, 1, 1, 1], 
+             [0, 0, 0, 0, 2, 0, 2, 6,11,11,11, 7, 2, 0, 2, 0, 0, 0, 0], 
+             [0, 0, 0, 0, 2, 0, 6, 1,10, 1,10, 1, 7, 0, 2, 0, 0, 0, 0], 
+             [0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0], 
+             [0, 4, 1, 1, 9, 0, 4, 1, 7, 0, 6, 1, 5, 0, 8, 1, 1, 5, 0], 
+             [0, 2, 0, 0, 2, 0, 2, 0, 0, 0, 0, 0, 2, 0, 2, 0, 0, 2, 0], 
+             [0, 8, 1, 1, 3, 1,11, 1,10, 1,10, 1,11, 1, 3, 1, 1, 9, 0], 
+             [0, 2, 0, 0, 2, 0, 0, 0, 2, 0, 2, 0, 0, 0, 2, 0, 0, 2, 0], 
+             [0, 6, 1, 1,11, 1, 1, 1, 7, 0, 6, 1, 1, 1,11, 1, 1, 7, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+             ]
+    
+    
     
     grid2 = ((0, 0, 0, 0, 0, 0, 0), 
             (0, 4, 1,10, 1, 5, 0),
