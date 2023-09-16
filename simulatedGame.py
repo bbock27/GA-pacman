@@ -72,9 +72,9 @@ class SimulatedGame(object):
                 
         self.ghosts = []
         self.ghosts.append(SimulatedGhost(8,9,0,0, self.graph))
-        self.ghosts.append(SimulatedGhost(9,9,0,0, self.graph))
-        self.ghosts.append(SimulatedGhost(10,9,0,0, self.graph))
-        self.ghosts.append(SimulatedGhost(11,9,0,0, self.graph))
+        # self.ghosts.append(SimulatedGhost(9,9,0,0, self.graph))
+        # self.ghosts.append(SimulatedGhost(10,9,0,0, self.graph))
+        # self.ghosts.append(SimulatedGhost(11,9,0,0, self.graph))
         
         
         self.addFood()

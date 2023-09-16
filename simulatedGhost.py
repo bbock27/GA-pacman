@@ -30,23 +30,70 @@ class SimulatedGhost():
         
         
     def search(self, goalX, goalY):
-        goal = (goalX, goalY)
-        currentNode = (self.x,self.y)
+        # goal = (goalX, goalY)
+        # currentNode = (self.x,self.y)
         
-        children = []
-        distance = []
-        for child in self.graph.matrix[currentNode]:
-            children.append(child)
+        # children = []
+        # distance = []
+        # for child in self.graph.matrix[currentNode]:
+        #     children.append(child)
         
         
-        for child in children:
-            distance.append(abs(child[0] - goal[0]) + abs(child[1] - goal[1]))
+        # for child in children:
+        #     distance.append(abs(child[0] - goal[0]) + abs(child[1] - goal[1]))
             
-        lowest = distance[0]
-        for i in distance:
-            if i < lowest:
-                lowest = i
-        return children[distance.index(lowest)]
+        # lowest = distance[0]
+        # for i in distance:
+        #     if i < lowest:
+        #         lowest = i
+        # return children[distance.index(lowest)]
+        goal = (goalX,goalY)
+        currentNode = (self.x,self.y, 0)
+        frontier = [currentNode]
+        frontierParents = [None]
+        frontierWeights = [0]
+        explored = {}
+        prevNode = None
+        currentWeight = 0
+        while frontier:
+            lowestPathCost = frontierWeights[0]
+            indexOfLowestCostPath = 0
+            # finds the lowest cost next move in the frontier
+            for i, nodeWeight in enumerate(frontierWeights):
+                if explored is not None and frontierParents[i] is not None:
+                    # adds the weight of the  node with the weight of the path to get to the node
+                    nodeWeight = nodeWeight + explored[frontierParents[i]][1]
+                if i == 0:
+                    lowestPathCost = nodeWeight
+                elif lowestPathCost > nodeWeight:
+                    indexOfLowestCostPath = i
+                    lowestPathCost = nodeWeight
+            
+            currentNode = frontier.pop(indexOfLowestCostPath)
+            
+            if currentNode[0:2] == (-1.0, 9.0) or currentNode[0:2] == (19.0, 9.0):
+                print("error")
+            
+            prevNode = frontierParents.pop(indexOfLowestCostPath)
+            
+            currentWeight = frontierWeights.pop(indexOfLowestCostPath)
+            
+            if explored:
+                # adds the weight of the node with the weight of the path to get to the node
+                currentWeight = currentWeight + explored[prevNode][1]
+            
+            
+            if currentNode[0:2] == goal:
+                # if the node is the goal, add it to the explored dictinoary with the immediate parent and the weight of the path it took to get to the node
+                explored.update({currentNode[0:2]:(prevNode, currentWeight)})
+                return explored
+            
+            if currentNode[0:2] not in explored.keys():
+                explored.update({currentNode[0:2]:(prevNode, currentWeight)})
+                for child in self.graph.matrix[currentNode[0:2]]:
+                    frontier.append(child)
+                    frontierParents.append(currentNode[0:2])
+                    frontierWeights.append(child[2])
 
     def frightSearch(self, goalX, goalY):
         goal = (goalX, goalY)
@@ -74,22 +121,60 @@ class SimulatedGhost():
         if fright:
             next = self.frightSearch(pacmanX, pacmanY)
         else:
-            next = self.search(pacmanX,pacmanY)
+            # next = self.search(pacmanX,pacmanY)
+            next = self.search(pacmanX, pacmanY)
+            if next is None:
+                next = "none"
+            else:
+                backwardsPath = []
         
-        nextX = next[0]
-        nextY = next[1]
+                currentSpace = (pacmanX,pacmanY)
+                prevSpace = next[currentSpace][0]
+                while prevSpace is not None:
+                    if(prevSpace[0] > currentSpace[0]):
+                        backwardsPath.append("left")
+                    elif(prevSpace[0] < currentSpace[0]):
+                        backwardsPath.append("right")
+                    elif(prevSpace[1] > currentSpace[1]):
+                        backwardsPath.append("up")
+                    elif(prevSpace[1] < currentSpace[1]):
+                        backwardsPath.append("down")
+                    currentSpace = prevSpace
+                    prevSpace = next[currentSpace][0]
+                    
+                if(len(backwardsPath) == 0):
+                    next = "none"
+                else:
+                    next = backwardsPath.pop()
+            
         
-        if nextX > self.x:
-            self.moveRight()
-        elif nextX < self.x:
+        # nextX = next[0]
+        # nextY = next[1]
+        
+        
+        if next == "left":
             self.moveLeft()
-        elif nextY > self.y:
-            self.moveDown()
-        elif nextY < self.y:
+        elif next == "right":
+            self.moveRight()
+        elif next == "up":
             self.moveUp()
+        elif next == "down":
+            self.moveDown()
         else:
             self.changeX = 0
             self.changeY = 0
+        
+        # if nextX > self.x:
+        #     self.moveRight()
+        # elif nextX < self.x:
+        #     self.moveLeft()
+        # elif nextY > self.y:
+        #     self.moveDown()
+        # elif nextY < self.y:
+        #     self.moveUp()
+        # else:
+        #     self.changeX = 0
+        #     self.changeY = 0
         
         self.x += self.changeX
         self.y += self.changeY
