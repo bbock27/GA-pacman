@@ -9,8 +9,8 @@ class GA():
     def __init__(self):
         self.currPopulation = []
         self.currPopFitness = []
-        self.genSize = 1
-        self.genCount = 1
+        self.genSize = 500
+        self.genCount = 1000
         self.chromosomeSize = 1500
         # total num of dots is 166
         for i in range(self.genSize):
@@ -29,10 +29,13 @@ class GA():
             print(generation, "____________\n\n")
             self.scoreList = []
             
+            # pool = concurrent.futures.ThreadPoolExecutor(max_workers=5)
             #evaluates an individual each iteration
             for i in range(self.genSize):
-                self.currPopFitness[i] = [self.evalFitness(self.currPopFitness[i][1]), self.currPopFitness[i][1]]
+                # self.currPopFitness[i] = [self.evalFitness(self.currPopFitness[i][1]), self.currPopFitness[i][1]]
+                # pool.submit(self.findOneScore(i))
                 self.findOneScore(i)
+            # pool.shutdown(wait=True)
             # sorts the list by each entry's first element(score)
             self.currPopFitness.sort(reverse = True, key = lambda x:x[0])
                 
@@ -88,7 +91,7 @@ class GA():
         results = SimulatedGame(chromosome).runSimulation()
         self.scoreList.append(results[0])
         # done the weight score vs steps taken. score is prioritized over steps taken
-        return ((2*results[0]) - (results[1]//2))
+        # return ((2*results[0]) - (results[1]//2))
         return results[0]
             
             

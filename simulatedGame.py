@@ -163,7 +163,7 @@ class SimulatedGame(object):
             if(self.fright):
                 self.frightTimer += 1
             
-            if(self.frightTimer >= 40):
+            if(self.frightTimer >= 10):
                 self.frightTimer = 0
                 self.fright = False
                 

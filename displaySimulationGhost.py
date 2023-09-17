@@ -134,6 +134,14 @@ class DisplaySimulationGhost(pygame.sprite.Sprite):
         
         if(fright):
             next = self.frightSearch(pacmanX,pacmanY)
+            if(next[0] > self.x):
+                next = "right"
+            elif(next[0] < self.x):
+                next = "left"
+            elif(next[1] > self.y):
+                next = "down"
+            elif(next[1] < self.y):
+                next = "up"
         else:
             next = self.search(pacmanX,pacmanY)
             if next is None:

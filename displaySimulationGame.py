@@ -178,8 +178,9 @@ class DisplaySimulatedGame(object):
                 
             if(self.fright):
                 self.frightTimer += 1
+                print(self.frightTimer)
             
-            if(self.frightTimer >= 40):
+            if(self.frightTimer >= 10):
                 self.frightTimer = 0
                 self.fright = False
                 
@@ -187,6 +188,10 @@ class DisplaySimulatedGame(object):
         return self.gameOver
             
     def displayFrame(self,screen):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                raise SystemExit
         # First, clear the screen to black.
         screen.fill(BLACK)
         #draws game
