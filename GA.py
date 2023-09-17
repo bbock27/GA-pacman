@@ -9,13 +9,8 @@ class GA():
     def __init__(self):
         self.currPopulation = []
         self.currPopFitness = []
-<<<<<<< HEAD
         self.genSize = 1
         self.genCount = 1
-=======
-        self.genSize = 200
-        self.genCount = 150
->>>>>>> d2222b0a04adac54ecc567977e82cc4bce348f46
         self.chromosomeSize = 1500
         # total num of dots is 166
         for i in range(self.genSize):
@@ -37,10 +32,7 @@ class GA():
             #evaluates an individual each iteration
             for i in range(self.genSize):
                 self.currPopFitness[i] = [self.evalFitness(self.currPopFitness[i][1]), self.currPopFitness[i][1]]
-<<<<<<< HEAD
                 self.findOneScore(i)
-=======
->>>>>>> d2222b0a04adac54ecc567977e82cc4bce348f46
             # sorts the list by each entry's first element(score)
             self.currPopFitness.sort(reverse = True, key = lambda x:x[0])
                 
